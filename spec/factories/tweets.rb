@@ -1,6 +1,5 @@
 FactoryBot.define do
   factory :tweet do
-    message { "This is a test tweet" }
-    association :user
+    message { 'Test Message' }
   end
 end

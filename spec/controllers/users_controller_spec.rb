@@ -7,16 +7,16 @@ RSpec.describe UsersController, type: :controller do
     it 'renders new user object' do
       post :create, params: {
         user: {
-          email: 'unique@test.com',
+          email: 'test@test.com',
           password: 'asdasdasd',
-          username: '12345678'
+          username: 'test'
         }
       }
 
       expect(response.body).to eq({
         user: {
-          username: '12345678',
-          email: 'unique@test.com'
+          username: 'test',
+          email: 'test@test.com'
         }
       }.to_json)
     end
