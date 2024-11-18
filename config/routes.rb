@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   # SESSIONS
   resources :sessions, only: [:create, :destroy] #
   delete '/sessions', to: 'sessions#destroy' # Add this line
+  get '/authenticated', to: 'sessions#authenticated'
 
   # TWEETS
   resources :tweets, only: [:index] 

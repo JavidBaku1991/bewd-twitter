@@ -1,4 +1,8 @@
 Rails.application.configure do
+  ...
+# Using the Amazon S3 settings for Active Storage
+config.active_storage.service = :amazon
+...
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded on

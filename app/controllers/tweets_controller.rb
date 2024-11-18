@@ -3,25 +3,46 @@ class TweetsController < ApplicationController
       def index_by_user
         # Retrieve the user based on the provided username
         user = User.find_by(username: params[:username])
-    
+      
         if user
-          # Get all tweets by that user
-          tweets = user.tweets.includes(:user)
-    
-          # Render the tweets as JSON
-          render json: tweets.as_json(include: { user: { only: [:username, :email] } }), status: :ok
+          # Get all tweets by that user, ordered by creation date
+          tweets = user.tweets.order(created_at: :desc)
+      
+          # Map the tweets to the desired response format
+          tweet_data = tweets.map do |tweet|
+            {
+              id: tweet.id,
+              username: tweet.user.username, # Only include username
+              message: tweet.message
+            }
+          end
+      
+          # Render the tweets as JSON with the required structure
+          render json: { tweets: tweet_data }, status: :ok
         else
           render json: { errors: ["User not found"] }, status: :not_found
         end
       end
       
-  def index
-    # Retrieve all tweets from the database
-    tweets = Tweet.includes(:user).all
-
-    # Render the tweets as JSON, including user details if needed
-    render json: tweets.as_json(include: { user: { only: [:username, :email] } }), status: :ok
-  end
+      
+      def index
+        # Retrieve all tweets from the database, ordered by creation date
+        tweets = Tweet.includes(:user).order(created_at: :desc)
+      
+        # Map the tweets to the desired response format
+        tweet_data = tweets.map do |tweet|
+          {
+            id: tweet.id,
+            username: tweet.user.username, # Only include username
+            message: tweet.message
+          }
+        end
+      
+        # Render the tweets as JSON with the required structure
+        render json: { tweets: tweet_data }, status: :ok
+      end
+      
+      
     # POST /tweets
     def create
       # Retrieve the session token from the cookie
@@ -46,32 +67,27 @@ class TweetsController < ApplicationController
         render json: { errors: ["User not authenticated"] }, status: :unauthorized
       end
     end
-  
+
+    
     def destroy
-        # Retrieve the session token from the cookie
-        session_token = cookies[:twitter_session_token]
+      session_token = cookies[:twitter_session_token]
+      session = Session.find_by(token: session_token)
     
-        # Find the session based on the token
-        session = Session.find_by(token: session_token)
+      if session
+        current_user = session.user
+        tweet = current_user.tweets.find_by(id: params[:id])
     
-        if session
-          # Retrieve the current user from the session
-          current_user = session.user
-    
-          # Find the tweet by ID
-          tweet = Tweet.find_by(id: params[:id])
-    
-          if tweet && tweet.user_id == current_user.id
-            # Delete the tweet if the current user is the author
-            tweet.destroy
-            render json: { message: "Tweet deleted successfully" }, status: :ok
-          else
-            render json: { errors: ["Tweet not found or you are not authorized to delete this tweet"] }, status: :forbidden
-          end
+        if tweet
+          tweet.destroy
+          render json: { success: true }, status: :ok
         else
-          render json: { errors: ["User not authenticated"] }, status: :unauthorized
+          render json: { errors: ["Tweet not found"] }, status: :not_found
         end
+      else
+        render json: { success: false }, status: :unauthorized
       end
+    end
+    
     private
   
     # Strong parameters for tweet creation

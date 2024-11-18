@@ -1,3 +1,10 @@
+# app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
-  protect_from_forgery with: :exception
+  private
+
+  def current_user
+    user = Session.find_by(token: session[:token])&.user
+    Rails.logger.debug "Current user: #{user.inspect}"
+    user
+  end
 end
